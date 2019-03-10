@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>卡牌</title>
+    <link rel="stylesheet" href="font/iconfont.css">
+    <script src="jquery-3.2.1.js"></script>
+</head>
+<style>
+    html{
+        width: 100%;
+        height: 100%;
+    }
+    body{
+        width: 100%;
+        height: 100%;
+        background: url(images/bigbg.jpg);
+        background-size: cover;
+    }
+    *{
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+    .dask{
+        width: 800px;
+        height: 600px;
+        top:0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        margin: auto;
+        position: absolute;
+    }
+    .pai{
+        width: 90px;
+        height: 140px;
+        position: absolute;
+        left: 350px;
+        top: 20px;
+        opacity:0;
+        border: 3px solid transparent;
+        transition: all linear .25s;
+        background-size: 90px 140px;
+    }
+    .dask>.active{
+        border-color: #2853f8;
+        transform: translateY(-20px);
+    }
+    .dask>.del{
+        top: 0px!important;
+        left: 650px!important;
+        opacity: 0!important;
+    }
+    .dask>.left,.dask>.right{
+        padding: 15px 30px;
+        position: absolute;
+        background: #0086b3;
+        border-radius: 5px;
+        left: 350px;
+
+        cursor: pointer;
+        color: #f0f0f0;
+    }
+    .dask>.left{
+        top: 530px;
+    }
+    .dask>.right{
+        top: 460px;
+    }
+</style>
+<body>
+    <div class="dask">
+        <div class="left"><i class="iconfont icon-zuo"></i></div>
+        <div class="right"><i class="iconfont icon-you"></i></div>
+    </div>
+</body>
+</html>
+<script>
+    $(function () {
+//        洗牌 产生
+        let color=['h','c','s','d'];
+        let poke=[];
+        let biao={};
+        let map={
+            '1':'A',
+            '2':'2',
+            '3':'3',
+            '4':'4',
+            '5':'5',
+            '6':'6',
+            '7':'7',
+            '8':'8',
+            '9':'9',
+            '10':'T',
+            '11':'J',
+            '12':'Q',
+            '13':'K'
+        };
+        for(let i=0;i<52;i++){
+            let huase=color[Math.floor(Math.random()*color.length)];
+            let num=Math.floor(Math.random()*13+1);
+            while(biao[`${huase}_${num}`]){
+                huase=color[Math.floor(Math.random()*color.length)];
+                num=Math.floor(Math.random()*13+1);
+            }
+            poke.push({huase,num});
+            biao[`${huase}_${num}`]=true;
+
+        }
+        let index=0;
+        for(let i=0;i<7;i++){
+            for(let j=0;j<=i;j++){
+                $('<div>').addClass('pai shang')
+                    .appendTo('.dask')
+                    .css({'backgroundImage':`url(images/${map[poke[index].num]}${poke[index].huase}.png)`})
+                    .data('shuzi',parseInt(poke[index].num))
+                    .prop('id',`${i}_${j}`)
+                    .delay(index*30)
+                    .animate({
+                        left:350-i*50+100*j,
+                        top:50*i,
+                        opacity:1
+                    })
+                index++;
+            }
+        }
+        for(let i=index;i<poke.length;i++){
+            $('<div>').addClass('pai zuo')
+                .appendTo('.dask')
+                .css({'backgroundImage':`url(images/${map[poke[i].num]}${poke[i].huase}.png)`})
+                .data('shuzi',parseInt(poke[i].num))
+                .delay(i*30)
+                .animate({
+                    left:150,
+                    top:450,
+                    opacity:1
+                })
+        }
+        $(document).on('click','.pai',function () {
+            let arr=this.id.split('_');
+            let id1=`#${parseInt(arr[0])+1}_${parseInt(arr[1])}`;
+            let id2=`#${parseInt(arr[0])+1}_${parseInt(arr[1]+1)}`;
+            if($(id1).length || $(id2).length){
+                return ;
+            }
+            $(this).toggleClass('active');
+        })
+        let left=$('.dask>.left');
+        let right=$('.dask>.right');
+        let cj=1;
+        right.on('click',function () {
+            let zuo=$('.zuo');
+            zuo.last().removeClass('zuo')
+                .addClass('you')
+                .css({'zIndex':cj})
+                .animate({
+                left:550
+            });
+            cj++;
+        })
+        left.on('click',function () {
+            let zuo=$('.you');
+            zuo.first().removeClass('you')
+                .addClass('zuo')
+                .css({'zIndex':cj})
+                .animate({
+                    left:150
+                });
+            cj++;
+        })
+        let first=null;
+        $(document).on('click','.pai',function (){
+            if(!$(this).hasClass('active')){
+                return ;
+            }
+            if(!first){
+                first=$(this);
+            }else if($(this).data('shuzi')+first.data('shuzi')==14 && this!=first[0]){
+                first.addClass('del')
+                    .delay(300)
+                    .queue(function () {
+                        $(this).remove();
+                    })
+                $(this).addClass('del')
+                    .delay(300)
+                    .queue(function () {
+                        $(this).remove();
+                    })
+                first=null;
+            }else{
+                first.removeClass('active')
+                $(this).removeClass('active')
+                first=null;
+            }
+        })
+    })
+</script>
